@@ -1,6 +1,7 @@
 const { catchAsyncErrors } = require("../middlewares/catchAsyncErrors");
 const ErrorHandler = require("../utils/ErrorHandler");
 const User = require("../models/userModels");
+const { sendToken } = require("../utils/SendToken");
 
 module.exports.homePage = catchAsyncErrors(async (req, res, next) => {
   res.json({ message: "route working !" });
@@ -35,5 +36,5 @@ module.exports.registerUser = catchAsyncErrors(async (req, res, next) => {
     new ErrorHandler("User not created !", 500);
   }
 
-  res.status(201).json(user);
+  sendToken(user, 201, res);
 });

@@ -46,4 +46,14 @@ userSchema.pre("save", function () {
   this.password = bcrypt.hashSync(this.password, salt);
 });
 
+userSchema.methods.comparePassword = function (password) {
+  return bcrypt.compareSync(password, this.password);
+};
+
+userSchema.methods.generatejwttoken = function () {
+  return jwt.sign({ id: this._id }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRE,
+  });
+};
+
 module.exports = mongoose.model("user", userSchema);

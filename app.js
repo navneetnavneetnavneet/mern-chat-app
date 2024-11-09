@@ -6,6 +6,8 @@ const app = express();
 const logger = require("morgan");
 const ErrorHandler = require("./utils/ErrorHandler");
 const { generateErrors } = require("./middlewares/errors");
+const session = require("express-session");
+const cookieParser = require("cookie-parser");
 
 // db connection
 require("./config/db").connectDatabase();
@@ -13,6 +15,16 @@ require("./config/db").connectDatabase();
 // body parser
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+
+// session and cookieParser
+app.use(
+  session({
+    resave: true,
+    saveUninitialized: true,
+    secret: process.env.EXPRESS_SESSION_SECRET,
+  })
+);
+app.use(cookieParser());
 
 // logger
 app.use(logger("tiny"));
