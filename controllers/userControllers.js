@@ -38,3 +38,27 @@ module.exports.registerUser = catchAsyncErrors(async (req, res, next) => {
 
   sendToken(user, 201, res);
 });
+
+module.exports.loginUser = catchAsyncErrors(async (req, res, next) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return next(new ErrorHandler("All fields are required !", 500));
+  }
+
+  const user = await User.findOne({ email }).select("+password");
+
+  if (!user) {
+    return next(
+      new ErrorHandler("User not found with this email address !", 404)
+    );
+  }
+
+  const isMatch = await user.comparePassword(password);
+
+  if (!isMatch) {
+    return next(new ErrorHandler("Wrong Creadentials !", 500));
+  }
+
+  sendToken(user, 200, res);
+});
