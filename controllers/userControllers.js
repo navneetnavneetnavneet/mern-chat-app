@@ -3,10 +3,6 @@ const ErrorHandler = require("../utils/ErrorHandler");
 const User = require("../models/userModels");
 const { sendToken } = require("../utils/SendToken");
 
-module.exports.homePage = catchAsyncErrors(async (req, res, next) => {
-  res.json({ message: "route working !" });
-});
-
 module.exports.registerUser = catchAsyncErrors(async (req, res, next) => {
   const { name, email, password, profileImage } = req.body;
 
@@ -61,4 +57,19 @@ module.exports.loginUser = catchAsyncErrors(async (req, res, next) => {
   }
 
   sendToken(user, 200, res);
+});
+
+module.exports.allUser = catchAsyncErrors(async (req, res, next) => {
+  const keyword = req.query.search
+    ? {
+        $or: [
+          { name: { $regex: req.query.search, $options: "i" } },
+          { name: { $regex: req.query.search, $options: "i" } },
+        ],
+      }
+    : {};
+
+  const users = await User.find(keyword).find({ _id: { $ne: req.id } });
+
+  res.status(200).json(users);
 });
