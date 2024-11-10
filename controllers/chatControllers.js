@@ -46,3 +46,19 @@ module.exports.accessChat = catchAsyncErrors(async (req, res, next) => {
     res.status(201).json(fullChat);
   }
 });
+
+module.exports.fetchChats = catchAsyncErrors(async (req, res, next) => {
+  await Chat.find({ users: { $elemMatch: { $eq: req.id } } })
+    .populate("users")
+    .populate("groupAdmin")
+    .populate("latestMessage")
+    .sort({ updatedAt: -1 })
+    .then(async (results) => {
+      results = await User.populate(results, {
+        path: "latestMessage.senderId",
+        select: "name email pic",
+      });
+
+      res.status(200).json(results);
+    });
+});
