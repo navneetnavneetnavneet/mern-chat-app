@@ -131,3 +131,23 @@ module.exports.addUserToGroup = catchAsyncErrors(async (req, res, next) => {
 
   res.status(200).json(addUser);
 });
+
+module.exports.removeUserFromGroup = catchAsyncErrors(
+  async (req, res, next) => {
+    const { chatId, userId } = req.body;
+
+    if (!chatId || !userId) {
+      return next(new ErrorHandler("All fields are required !", 500));
+    }
+
+    const removeUser = await Chat.findByIdAndUpdate(
+      chatId,
+      { $pull: { users: userId } },
+      { new: true }
+    )
+      .populate("users")
+      .populate("groupAdmin");
+
+    res.status(200).json(removeUser);
+  }
+);

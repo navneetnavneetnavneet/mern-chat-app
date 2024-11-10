@@ -7,6 +7,7 @@ const {
   createGroupChat,
   renameGroup,
   addUserToGroup,
+  removeUserFromGroup,
 } = require("../controllers/chatControllers");
 
 // POST /api/chats
@@ -23,5 +24,8 @@ router.post("/rename-group", isAuthenticated, renameGroup);
 
 // POST /api/chats/add-user-group
 router.post("/add-user-group", isAuthenticated, addUserToGroup);
+
+// POST /api/chats/remove-user-group
+router.post("/remove-user-group", isAuthenticated, removeUserFromGroup);
 
 module.exports = router;
