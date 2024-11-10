@@ -62,3 +62,40 @@ module.exports.fetchChats = catchAsyncErrors(async (req, res, next) => {
       res.status(200).json(results);
     });
 });
+
+module.exports.createGroupChat = catchAsyncErrors(async (req, res, next) => {
+  if (!req.body.chatName || !req.body.users) {
+    return next(new ErrorHandler("Please fill all the fields !", 500));
+  }
+
+  const users = JSON.parse(req.body.users);
+
+  if (users.length < 2) {
+    return next(
+      new ErrorHandler("More than two users are required in group chat !", 500)
+    );
+  }
+
+  users.push(req.id);
+
+  const chatNameAlreadyExists = await Chat.findOne({
+    chatName: req.body.chatName,
+  });
+
+  const createdGroup = await Chat.create({
+    chatName: req.body.chatName,
+    users: users,
+    isGroupChat: true,
+    groupAdmin: req.id,
+  });
+
+  if (!createdGroup) {
+    return next(new ErrorHandler("Group Chat is not created !", 500));
+  }
+
+  const fullGroupChat = await Chat.findOne({ _id: createdGroup._id })
+    .populate("users")
+    .populate("groupAdmin");
+
+  res.status(201).json(fullGroupChat);
+});
