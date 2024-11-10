@@ -5,7 +5,6 @@ const chatSchema = new mongoose.Schema(
     chatName: {
       type: String,
       trim: true,
-      unique: true,
     },
     isGroupChat: {
       type: Boolean,

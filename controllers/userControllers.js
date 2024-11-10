@@ -1,6 +1,6 @@
 const { catchAsyncErrors } = require("../middlewares/catchAsyncErrors");
 const ErrorHandler = require("../utils/ErrorHandler");
-const User = require("../models/userModels");
+const User = require("../models/userModel");
 const { sendToken } = require("../utils/SendToken");
 
 module.exports.registerUser = catchAsyncErrors(async (req, res, next) => {
