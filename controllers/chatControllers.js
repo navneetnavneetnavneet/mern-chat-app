@@ -78,10 +78,6 @@ module.exports.createGroupChat = catchAsyncErrors(async (req, res, next) => {
 
   users.push(req.id);
 
-  const chatNameAlreadyExists = await Chat.findOne({
-    chatName: req.body.chatName,
-  });
-
   const createdGroup = await Chat.create({
     chatName: req.body.chatName,
     users: users,
@@ -98,4 +94,22 @@ module.exports.createGroupChat = catchAsyncErrors(async (req, res, next) => {
     .populate("groupAdmin");
 
   res.status(201).json(fullGroupChat);
+});
+
+module.exports.renameGroup = catchAsyncErrors(async (req, res, next) => {
+  const { chatId, chatName } = req.body;
+
+  if (!chatId || !chatName) {
+    return next(new ErrorHandler("All fields are required !", 500));
+  }
+
+  const updatedGroupChat = await Chat.findByIdAndUpdate(
+    chatId,
+    { chatName },
+    { new: true }
+  )
+    .populate("users")
+    .populate("groupAdmin");
+
+  res.status(200).json(updatedGroupChat);
 });
