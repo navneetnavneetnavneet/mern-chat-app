@@ -113,3 +113,21 @@ module.exports.renameGroup = catchAsyncErrors(async (req, res, next) => {
 
   res.status(200).json(updatedGroupChat);
 });
+
+module.exports.addUserToGroup = catchAsyncErrors(async (req, res, next) => {
+  const { chatId, userId } = req.body;
+
+  if (!chatId || !userId) {
+    return next(new ErrorHandler("All fields are required !", 500));
+  }
+
+  const addUser = await Chat.findByIdAndUpdate(
+    chatId,
+    { $push: { users: userId } },
+    { new: true }
+  )
+    .populate("users")
+    .populate("groupAdmin");
+
+  res.status(200).json(addUser);
+});
