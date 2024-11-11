@@ -36,3 +36,17 @@ module.exports.sendMessage = catchAsyncErrors(async (req, res, next) => {
 
   res.status(201).json(message);
 });
+
+module.exports.fetchAllMessages = catchAsyncErrors(async (req, res, next) => {
+  const { chatId } = req.params;
+
+  if (!chatId) {
+    return next(new ErrorHandler("chatId params not sent by request !", 500));
+  }
+
+  const messages = await Message.find({ chatId: chatId })
+    .populate("senderId", "name email pic")
+    .populate("chatId");
+
+  res.status(200).json(messages);
+});
