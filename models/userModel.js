@@ -26,6 +26,11 @@ const userSchema = new mongoose.Schema(
       ],
       minLength: [6, "Password must be atleast 6 characters !"],
     },
+    gender: {
+      type: String,
+      require: [true, "Gender in required !"],
+      enum: ["male", "female", "other"],
+    },
     profileImage: {
       type: String,
       default:

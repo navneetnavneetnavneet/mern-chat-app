@@ -12,10 +12,7 @@ module.exports.sendToken = (user, statusCode, res) => {
 
   res.status(statusCode).cookie("token", token, options).json({
     success: true,
+    id: user._id,
     token: token,
-    _id: user._id,
-    name: user.name,
-    email: user.email,
-    profileImage: user.profileImage,
   });
 };

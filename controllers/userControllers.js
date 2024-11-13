@@ -9,14 +9,14 @@ module.exports.currentUser = catchAsyncErrors(async (req, res, next) => {
   if (!user) {
     return next(new ErrorHandler("Please login to access the resource !", 500));
   }
-  
+
   res.status(200).json(user);
 });
 
 module.exports.registerUser = catchAsyncErrors(async (req, res, next) => {
-  const { name, email, password, profileImage } = req.body;
+  const { name, email, password, gender, profileImage } = req.body;
 
-  if (!name || !email || !password) {
+  if (!name || !email || !password || !gender) {
     return next(new ErrorHandler("All fields are required !", 500));
   }
 
@@ -35,6 +35,7 @@ module.exports.registerUser = catchAsyncErrors(async (req, res, next) => {
     name,
     email,
     password,
+    gender,
     profileImage,
   });
 
@@ -82,4 +83,16 @@ module.exports.allUser = catchAsyncErrors(async (req, res, next) => {
   const users = await User.find(keyword).find({ _id: { $ne: req.id } });
 
   res.status(200).json(users);
+});
+
+module.exports.editUser = catchAsyncErrors(async (req, res, next) => {
+  const user = await User.findByIdAndUpdate(req.id, req.body, { new: true });
+
+  res.status(200).json(user);
+});
+
+module.exports.deleteUser = catchAsyncErrors(async (req, res, next) => {
+  const user = await User.findByIdAndDelete(req.id);
+
+  res.status(200).json({ message: "User delete successfully" });
 });
