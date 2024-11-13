@@ -3,20 +3,10 @@ const ErrorHandler = require("../utils/ErrorHandler");
 const User = require("../models/userModel");
 const { sendToken } = require("../utils/SendToken");
 
-module.exports.currentUser = catchAsyncErrors(async (req, res, next) => {
-  const user = await User.findById(req.id);
+module.exports.signUpUser = catchAsyncErrors(async (req, res, next) => {
+  const { fullName, email, password, gender, profileImage } = req.body;
 
-  if (!user) {
-    return next(new ErrorHandler("Please login to access the resource !", 500));
-  }
-
-  res.status(200).json(user);
-});
-
-module.exports.registerUser = catchAsyncErrors(async (req, res, next) => {
-  const { name, email, password, gender, profileImage } = req.body;
-
-  if (!name || !email || !password || !gender) {
+  if (!fullName || !email || !password || !gender) {
     return next(new ErrorHandler("All fields are required !", 500));
   }
 
@@ -32,7 +22,7 @@ module.exports.registerUser = catchAsyncErrors(async (req, res, next) => {
   }
 
   const user = await User.create({
-    name,
+    fullName,
     email,
     password,
     gender,
@@ -46,7 +36,7 @@ module.exports.registerUser = catchAsyncErrors(async (req, res, next) => {
   sendToken(user, 201, res);
 });
 
-module.exports.loginUser = catchAsyncErrors(async (req, res, next) => {
+module.exports.signInUser = catchAsyncErrors(async (req, res, next) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -70,12 +60,22 @@ module.exports.loginUser = catchAsyncErrors(async (req, res, next) => {
   sendToken(user, 200, res);
 });
 
-module.exports.logoutUser = catchAsyncErrors(async (req, res, next) => {
+module.exports.signOutUser = catchAsyncErrors(async (req, res, next) => {
   res.clearCookie("token");
 
   res.status(200).json({
     message: "User logout successfull",
   });
+});
+
+module.exports.loggedInUser = catchAsyncErrors(async (req, res, next) => {
+  const user = await User.findById(req.id);
+
+  if (!user) {
+    return next(new ErrorHandler("Please login to access the resource !", 500));
+  }
+
+  res.status(200).json(user);
 });
 
 module.exports.allUser = catchAsyncErrors(async (req, res, next) => {

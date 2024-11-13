@@ -22,7 +22,7 @@ module.exports.accessChat = catchAsyncErrors(async (req, res, next) => {
 
   isChat = await User.populate(isChat, {
     path: "latestMessage.senderId",
-    select: "name email pic",
+    select: "fullName email pic gender",
   });
 
   if (isChat.length > 0) {
@@ -56,7 +56,7 @@ module.exports.fetchChats = catchAsyncErrors(async (req, res, next) => {
     .then(async (results) => {
       results = await User.populate(results, {
         path: "latestMessage.senderId",
-        select: "name email pic",
+        select: "fullName email pic gender",
       });
 
       res.status(200).json(results);

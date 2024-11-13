@@ -1,25 +1,25 @@
 const express = require("express");
 const {
-  registerUser,
-  loginUser,
-  currentUser,
+  signUpUser,
+  signInUser,
+  signOutUser,
+  loggedInUser,
   allUser,
   editUser,
   deleteUser,
-  logoutUser,
 } = require("../controllers/userControllers");
 const { isAuthenticated } = require("../middlewares/auth");
 const router = express.Router();
 
-router.post("/register", registerUser);
+router.post("/signup", signUpUser);
 
-router.post("/login", loginUser);
+router.post("/signin", signInUser);
 
-router.get("/logout", isAuthenticated, logoutUser);
+router.get("/signout", isAuthenticated, signOutUser);
 
-router.get("/current", isAuthenticated, currentUser);
+router.get("/current", isAuthenticated, loggedInUser);
 
-router.get("/", isAuthenticated, allUser);
+router.get("/alluser", isAuthenticated, allUser);
 
 router.post("/edit", isAuthenticated, editUser);
 
