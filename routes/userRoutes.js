@@ -6,6 +6,7 @@ const {
   allUser,
   editUser,
   deleteUser,
+  logoutUser,
 } = require("../controllers/userControllers");
 const { isAuthenticated } = require("../middlewares/auth");
 const router = express.Router();
@@ -13,6 +14,8 @@ const router = express.Router();
 router.post("/register", registerUser);
 
 router.post("/login", loginUser);
+
+router.get("/logout", isAuthenticated, logoutUser);
 
 router.get("/current", isAuthenticated, currentUser);
 

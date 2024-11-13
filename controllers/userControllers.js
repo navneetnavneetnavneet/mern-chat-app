@@ -70,6 +70,14 @@ module.exports.loginUser = catchAsyncErrors(async (req, res, next) => {
   sendToken(user, 200, res);
 });
 
+module.exports.logoutUser = catchAsyncErrors(async (req, res, next) => {
+  res.clearCookie("token");
+
+  res.status(200).json({
+    message: "User logout successfull",
+  });
+});
+
 module.exports.allUser = catchAsyncErrors(async (req, res, next) => {
   const keyword = req.query.search
     ? {
