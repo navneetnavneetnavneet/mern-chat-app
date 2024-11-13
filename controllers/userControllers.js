@@ -3,6 +3,16 @@ const ErrorHandler = require("../utils/ErrorHandler");
 const User = require("../models/userModel");
 const { sendToken } = require("../utils/SendToken");
 
+module.exports.currentUser = catchAsyncErrors(async (req, res, next) => {
+  const user = await User.findById(req.id);
+
+  if (!user) {
+    return next(new ErrorHandler("Please login to access the resource !", 500));
+  }
+  
+  res.status(200).json(user);
+});
+
 module.exports.registerUser = catchAsyncErrors(async (req, res, next) => {
   const { name, email, password, profileImage } = req.body;
 

@@ -6,8 +6,8 @@ module.exports.sendToken = (user, statusCode, res) => {
       Date.now() + 24 * 60 * 60 * 1000 + process.env.COOKIE_EXPIRE
     ),
     httpOnly: true,
-    // secure: true,
-    // sameSite: "None",
+    secure: true,
+    sameSite: "None",
   };
 
   res.status(statusCode).cookie("token", token, options).json({
