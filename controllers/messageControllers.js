@@ -21,11 +21,11 @@ module.exports.sendMessage = catchAsyncErrors(async (req, res, next) => {
     return next(new ErrorHandler("Message is not created !", 500));
   }
 
-  message = await message.populate("senderId", "fullName email pic gender");
+  message = await message.populate("senderId", "fullName email profileImage gender");
   message = await message.populate("chatId");
   message = await User.populate(message, {
     path: "chatId.users",
-    select: "fullName email pic gender",
+    select: "fullName email profileImage gender",
   });
 
   await Chat.findByIdAndUpdate(
@@ -45,7 +45,7 @@ module.exports.fetchAllMessages = catchAsyncErrors(async (req, res, next) => {
   }
 
   const messages = await Message.find({ chatId: chatId })
-    .populate("senderId", "fullName email pic gender")
+    .populate("senderId", "fullName email profileImage gender")
     .populate("chatId");
 
   res.status(200).json(messages);
