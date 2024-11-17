@@ -8,6 +8,7 @@ const {
   renameGroup,
   addUserToGroup,
   removeUserFromGroup,
+  exitUserFromGroup,
 } = require("../controllers/chatControllers");
 
 // POST /api/chats
@@ -27,5 +28,8 @@ router.post("/add-user-group", isAuthenticated, addUserToGroup);
 
 // POST /api/chats/remove-user-group
 router.post("/remove-user-group", isAuthenticated, removeUserFromGroup);
+
+// POST /api/chats/exit-user-group
+router.post("/exit-user-group", isAuthenticated, exitUserFromGroup);
 
 module.exports = router;

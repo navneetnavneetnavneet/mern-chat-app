@@ -151,3 +151,27 @@ module.exports.removeUserFromGroup = catchAsyncErrors(
     res.status(200).json(removeUser);
   }
 );
+
+module.exports.exitUserFromGroup = catchAsyncErrors(async (req, res, next) => {
+  const { chatId } = req.body;
+  const user = await User.findById(req.id);
+  const chat = await Chat.findById(chatId)
+    .populate("users")
+    .populate("groupAdmin");
+
+  if (!chat) {
+    return next(new ErrorHandler("Chat in not found !", 404));
+  }
+
+  chat.users = chat.users.filter(
+    (u) => u._id.toString() !== user._id.toString()
+  );
+
+  if (chat.groupAdmin._id.toString() === user._id.toString()) {
+    chat.groupAdmin = chat.users[0] || null;
+  }
+
+  await chat.save();
+
+  res.status(200).json(chat);
+});
