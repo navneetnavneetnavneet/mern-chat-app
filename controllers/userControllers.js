@@ -2,6 +2,9 @@ const { catchAsyncErrors } = require("../middlewares/catchAsyncErrors");
 const ErrorHandler = require("../utils/ErrorHandler");
 const User = require("../models/userModel");
 const { sendToken } = require("../utils/SendToken");
+const imagekit = require("../utils/ImageKit").initImageKit();
+const path = require("path");
+const { v4: uuidv4 } = require("uuid");
 
 module.exports.signUpUser = catchAsyncErrors(async (req, res, next) => {
   const { fullName, email, password, gender, profileImage } = req.body;
@@ -95,6 +98,28 @@ module.exports.allUser = catchAsyncErrors(async (req, res, next) => {
 
 module.exports.editUser = catchAsyncErrors(async (req, res, next) => {
   const user = await User.findByIdAndUpdate(req.id, req.body, { new: true });
+
+  if (req.files && req.files.profileImage) {
+    try {
+      if (user.profileImage.fileId !== "") {
+        await imagekit.deleteFile(user.profileImage?.fileId);
+      }
+    } catch (error) {
+      console.error("Failed to delete old profile image:", error);
+    }
+
+    const file = req.files.profileImage;
+    const modifiledFileName = uuidv4() + path.extname(file.name);
+
+    const { fileId, url } = await imagekit.upload({
+      file: file.data,
+      fileName: modifiledFileName,
+    });
+
+    user.profileImage = { fileId, url };
+  }
+
+  await user.save();
 
   res.status(200).json(user);
 });

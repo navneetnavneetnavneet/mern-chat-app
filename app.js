@@ -9,12 +9,16 @@ const { generateErrors } = require("./middlewares/errors");
 const session = require("express-session");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
+const fileupload = require("express-fileupload");
 
 // db connection
 require("./config/db").connectDatabase();
 
 // cors
 app.use(cors({ origin: "http://localhost:5173", credentials: true }));
+
+// express-fileupload
+app.use(fileupload());
 
 // body parser
 app.use(express.urlencoded({ extended: true }));
