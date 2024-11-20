@@ -99,7 +99,10 @@ module.exports.allUser = catchAsyncErrors(async (req, res, next) => {
 module.exports.editUser = catchAsyncErrors(async (req, res, next) => {
   const user = await User.findByIdAndUpdate(req.id, req.body, { new: true });
 
+  console.log(req.files);
+  
   if (req.files && req.files.profileImage) {
+    
     try {
       if (user.profileImage.fileId !== "") {
         await imagekit.deleteFile(user.profileImage?.fileId);

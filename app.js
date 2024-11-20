@@ -49,6 +49,26 @@ app.all("*", (req, res, next) => {
 app.use(generateErrors);
 
 // create server
-app.listen(process.env.PORT, () => {
+const server = app.listen(process.env.PORT, () => {
   console.log(`Server running on port ${process.env.PORT}`);
+});
+
+const io = require("socket.io")(server, {
+  cors: {
+    origin: "http://localhost:5173",
+  },
+});
+
+io.on("connection", (socket) => {
+  console.log("A user is connected", socket.id);
+
+  socket.on("setup", (userData) => {
+    // console.log(userData);
+    socket.join(userData._id);
+    socket.emit("connected");
+  });
+
+  socket.on("disconnecting", () => {
+    console.log("user disconnected !");
+  });
 });
