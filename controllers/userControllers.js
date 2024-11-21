@@ -99,10 +99,34 @@ module.exports.allUser = catchAsyncErrors(async (req, res, next) => {
 module.exports.editUser = catchAsyncErrors(async (req, res, next) => {
   const user = await User.findByIdAndUpdate(req.id, req.body, { new: true });
 
-  console.log(req.files);
-  
   if (req.files && req.files.profileImage) {
-    
+    const validMimeTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/jpg",
+      "image/webp",
+    ];
+
+    if (!validMimeTypes.includes(req.files?.profileImage?.mimetype)) {
+      return next(
+        new ErrorHandler(
+          "Invalid file type. Only JPEG, PNG, JPG and WEBP files are allowed.",
+          500
+        )
+      );
+    }
+
+    const maxSize = 2 * 1024 * 1024; // 2MB
+
+    if (req.files?.profileImage?.size > maxSize) {
+      return next(
+        new ErrorHandler(
+          "File size exceeds the 2MB limit, Please select another file !",
+          500
+        )
+      );
+    }
+
     try {
       if (user.profileImage.fileId !== "") {
         await imagekit.deleteFile(user.profileImage?.fileId);
