@@ -11,8 +11,13 @@ const io = new Server(server, {
   },
 });
 
+// Map to track online users
+const userSocketMap = {};
+
 io.on("connection", (socket) => {
   console.log("A user is connected", socket.id);
+
+  let userId;
 
   // Setup user
   socket.on("setup", (userData) => {
@@ -20,9 +25,15 @@ io.on("connection", (socket) => {
       console.error("Invalid user data for setup");
       return;
     }
-    socket.join(userData._id); // Join user's personal room
+
+    userId = userData._id;
+    userSocketMap[userId] = socket.id;
+    socket.join(userId); // Join user's personal room
     socket.emit("connected");
-    console.log(`User ${userData._id} joined their personal room`);
+    console.log(`User ${userId} joined their personal room`);
+
+    //   online users
+    io.emit("getOnlineUsers", Object.keys(userSocketMap));
   });
 
   // Join a specific room
@@ -62,6 +73,10 @@ io.on("connection", (socket) => {
 
   socket.on("disconnecting", () => {
     console.log(`User disconnected: ${socket.id}`);
+    if (userId) {
+      delete userSocketMap[userId];
+      io.emit("getOnlineUsers", Object.keys(userSocketMap));
+    }
   });
 });
 
