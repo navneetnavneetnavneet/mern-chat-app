@@ -17,33 +17,23 @@ module.exports.sendMessage = catchAsyncErrors(async (req, res, next) => {
   let fileId, url, mimeType;
   if (req.files && req.files?.media) {
     try {
-      const imageMimeTypes = [
+      const validMimeTypes = [
+        // images
         "image/jpeg",
         "image/png",
         "image/gif",
         "image/webp",
         "image/svg+xml",
-      ];
 
-      const videoMimeTypes = ["video/mp4", "video/webm", "video/ogg"];
+        // videos
+        "video/mp4",
+        "video/webm",
+        "video/ogg",
 
-      const textMimeTypes = [
+        // text
         "text/plain",
         "application/json",
         "application/pdf",
-        "text/html",
-        "text/javascript",
-        "text/css",
-        "application/msword",
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        "application/vnd.ms-excel",
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      ];
-
-      const validMimeTypes = [
-        ...imageMimeTypes,
-        ...videoMimeTypes,
-        ...textMimeTypes,
       ];
 
       if (!validMimeTypes.includes(req.files?.media?.mimetype)) {
@@ -60,7 +50,7 @@ module.exports.sendMessage = catchAsyncErrors(async (req, res, next) => {
       if (req.files?.media?.size > maxSize) {
         return next(
           new ErrorHandler(
-            "File size exceeds the 10MB limit, Please choose another file !",
+            "File size exceeds the 20MB limit, Please choose another file !",
             500
           )
         );
@@ -75,14 +65,10 @@ module.exports.sendMessage = catchAsyncErrors(async (req, res, next) => {
         fileName: modifiedFileName,
       });
 
-      console.log(fileuploadResponse);
-      
-
       fileId = fileuploadResponse.fileId;
       url = fileuploadResponse.url;
     } catch (error) {
-      console.log(error);
-
+      // console.log("File Upload Error : ", error);
       return next(new ErrorHandler("File upload failed !", 500));
     }
   }
@@ -98,23 +84,28 @@ module.exports.sendMessage = catchAsyncErrors(async (req, res, next) => {
     return next(new ErrorHandler("Message is not created !", 500));
   }
 
-  message = await message.populate(
-    "senderId",
-    "fullName email profileImage gender"
-  );
-  message = await message.populate("chatId");
-  message = await User.populate(message, {
-    path: "chatId.users",
-    select: "fullName email profileImage gender",
-  });
+  try {
+    message = await message.populate(
+      "senderId",
+      "fullName email profileImage gender"
+    );
+    message = await message.populate("chatId");
+    message = await User.populate(message, {
+      path: "chatId.users",
+      select: "fullName email profileImage gender",
+    });
 
-  await Chat.findByIdAndUpdate(
-    chatId,
-    { latestMessage: message },
-    { new: true }
-  );
+    await Chat.findByIdAndUpdate(
+      chatId,
+      { latestMessage: message },
+      { new: true }
+    );
 
-  res.status(201).json(message);
+    res.status(201).json(message);
+  } catch (error) {
+    // console.log(error);
+    return next(new ErrorHandler("Message population failed!", 500));
+  }
 });
 
 module.exports.fetchAllMessages = catchAsyncErrors(async (req, res, next) => {
