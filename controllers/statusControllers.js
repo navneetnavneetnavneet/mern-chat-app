@@ -14,7 +14,6 @@ module.exports.statusUpload = catchAsyncErrors(async (req, res, next) => {
   }
 
   if (req.files) {
-    
     const mimeType = req.files?.media?.mimetype.split("/")[0];
 
     const validMimeTypes = [
@@ -56,7 +55,7 @@ module.exports.statusUpload = catchAsyncErrors(async (req, res, next) => {
     }
 
     const file = req.files?.media;
-    const modifiedFileName = uuidv4() + path.extname(file.name);
+    const modifiedFileName = uuidv4() + path.extname(file?.name);
 
     const { fileId, url } = await imagekit.upload({
       file: file.data,
@@ -82,4 +81,40 @@ module.exports.statusUpload = catchAsyncErrors(async (req, res, next) => {
     message: "Status uploaded successfully",
     user,
   });
+});
+
+module.exports.fetchAllStatus = catchAsyncErrors(async (req, res, next) => {
+  const user = await User.findById(req.id);
+
+  if (!user) {
+    return next(new ErrorHandler("User Not Found !", 404));
+  }
+
+  const allStatus = await Status.find().populate({
+    path: "user",
+    populate: {
+      path: "status",
+    },
+  });
+
+  const obj = {};
+  const filteredStatus = allStatus.filter((s) => {
+    if (!obj[s.user._id]) {
+      return (obj[s.user._id] = "anything");
+    }
+  });
+
+  const loggedInUserStatus = filteredStatus.find(
+    (s) => s.user._id.toString() === user._id.toString()
+  );
+
+  const otherUserStatus = filteredStatus.filter(
+    (s) => s.user._id.toString() !== user._id.toString()
+  );
+
+  if (loggedInUserStatus) {
+    otherUserStatus.unshift(loggedInUserStatus);
+  }
+
+  res.status(200).json({ allStatus: otherUserStatus });
 });
