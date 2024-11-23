@@ -41,6 +41,7 @@ app.use(logger("tiny"));
 app.use("/api/users", require("./routes/userRoutes"));
 app.use("/api/chats", require("./routes/chatRoutes"));
 app.use("/api/messages", require("./routes/messageRoutes"));
+app.use("/api/status", require("./routes/statusRoutes"));
 
 // error handling
 app.all("*", (req, res, next) => {
