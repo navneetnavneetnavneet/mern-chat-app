@@ -7,6 +7,7 @@ const {
   allUser,
   editUser,
   deleteUser,
+  fetchAllUser,
 } = require("../controllers/userControllers");
 const { isAuthenticated } = require("../middlewares/auth");
 const router = express.Router();
@@ -20,6 +21,9 @@ router.get("/signout", isAuthenticated, signOutUser);
 router.get("/current", isAuthenticated, loggedInUser);
 
 router.get("/alluser", isAuthenticated, allUser);
+
+// include loggedInUser
+router.get("/", isAuthenticated, fetchAllUser);
 
 router.post("/edit", isAuthenticated, editUser);
 

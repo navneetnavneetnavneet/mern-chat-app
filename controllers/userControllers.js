@@ -96,6 +96,12 @@ module.exports.allUser = catchAsyncErrors(async (req, res, next) => {
   res.status(200).json(users);
 });
 
+module.exports.fetchAllUser = catchAsyncErrors(async (req, res, next) => {
+  const users = await User.find().populate("status");
+
+  res.status(200).json(users);
+});
+
 module.exports.editUser = catchAsyncErrors(async (req, res, next) => {
   const user = await User.findByIdAndUpdate(req.id, req.body, { new: true });
 

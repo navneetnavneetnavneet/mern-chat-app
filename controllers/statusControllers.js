@@ -2,9 +2,9 @@ const { catchAsyncErrors } = require("../middlewares/catchAsyncErrors");
 const ErrorHandler = require("../utils/ErrorHandler");
 const Status = require("../models/statusModel");
 const User = require("../models/userModel");
-const imagekit = require("../utils/ImageKit").initImageKit();
 const { v4: uuidv4 } = require("uuid");
 const path = require("path");
+const imagekit = require("../utils/ImageKit").initImageKit();
 
 module.exports.statusUpload = catchAsyncErrors(async (req, res, next) => {
   const user = await User.findById(req.id);
@@ -64,7 +64,7 @@ module.exports.statusUpload = catchAsyncErrors(async (req, res, next) => {
 
     if (fileId && url && mimeType) {
       const status = await Status.create({
-        image: { fileId, url, fileType: mimeType },
+        media: { fileId, url, fileType: mimeType },
         user: user._id,
       });
 
@@ -77,7 +77,7 @@ module.exports.statusUpload = catchAsyncErrors(async (req, res, next) => {
     }
   }
 
-  res.status(200).json({
+  res.status(201).json({
     message: "Status uploaded successfully",
     user,
   });
@@ -116,5 +116,25 @@ module.exports.fetchAllStatus = catchAsyncErrors(async (req, res, next) => {
     otherUserStatus.unshift(loggedInUserStatus);
   }
 
-  res.status(200).json({ allStatus: otherUserStatus });
+  res.status(200).json(otherUserStatus);
+});
+
+module.exports.deleteStatus = catchAsyncErrors(async (req, res, next) => {
+  let user = await User.findById(req.id);
+
+  if (!user) {
+    return next(new ErrorHandler("User Not Found !", 404));
+  }
+
+  if (!user.status.includes(req.params.id.toString())) {
+    return next(new ErrorHandler("Status Not Found !", 404));
+  }
+  user.status.splice(user.status.indexOf(req.params.id.toString()), 1);
+  await Status.findByIdAndDelete(req.params.id);
+  await user.save();
+
+  res.status(200).json({
+    message: "Status deleted successfully",
+    user,
+  });
 });
