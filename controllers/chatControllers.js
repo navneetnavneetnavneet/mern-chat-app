@@ -54,6 +54,18 @@ module.exports.fetchChats = catchAsyncErrors(async (req, res, next) => {
     .populate("latestMessage")
     .sort({ updatedAt: -1 })
     .then(async (results) => {
+      // Adding the admin to the start of the users array
+      results.forEach((chat) => {
+        if (chat.isGroupChat && chat.groupAdmin) {
+          const adminIndex = chat.users.findIndex(
+            (u) => u._id.toString() === chat.groupAdmin._id.toString()
+          );
+
+          const [adminUser] = chat.users.splice(adminIndex, 1);
+          chat.users.unshift(adminUser);
+        }
+      });
+
       results = await User.populate(results, {
         path: "latestMessage.senderId",
         select: "fullName email profileImage gender",
