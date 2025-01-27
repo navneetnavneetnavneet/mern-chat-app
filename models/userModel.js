@@ -38,6 +38,22 @@ const userSchema = new mongoose.Schema(
         url: "https://www.shutterstock.com/image-vector/user-profile-icon-vector-avatar-600nw-2247726673.jpg",
       },
     },
+    dateOfBirth: {
+      type: Date,
+    },
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
+    otp: {
+      type: String,
+      default: null,
+      minLength: [6, "OTP must be 6 characters !"],
+    },
+    otpExpiration: {
+      type: String,
+      default: null,
+    },
     status: [{ type: mongoose.Schema.Types.ObjectId, ref: "status" }],
   },
   {

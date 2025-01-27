@@ -8,9 +8,12 @@ const {
   editUser,
   deleteUser,
   fetchAllUser,
+  sendOTP,
 } = require("../controllers/userControllers");
 const { isAuthenticated } = require("../middlewares/auth");
 const router = express.Router();
+
+router.post("/send-otp", sendOTP);
 
 router.post("/signup", signUpUser);
 

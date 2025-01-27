@@ -5,6 +5,40 @@ const { sendToken } = require("../utils/SendToken");
 const imagekit = require("../utils/ImageKit").initImageKit();
 const path = require("path");
 const { v4: uuidv4 } = require("uuid");
+const bcrypt = require("bcryptjs");
+const { sendEmail } = require("../utils/EmailSender");
+
+module.exports.sendOTP = catchAsyncErrors(async (req, res, next) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return next(new ErrorHandler("Email is required !", 400));
+  }
+
+  const user = await User.findOne({ email });
+
+  if (user?.isVerified) {
+    return next(new ErrorHandler("User already exist, Please login !", 400));
+  }
+
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  const otpExpirationTime = Date.now() + 10 * 60 * 1000; // OTP expires in 10 minutes
+  const salt = await bcrypt.genSalt(10);
+  const hashedOTP = await bcrypt.hash(otp, salt);
+
+  await User.updateOne(
+    { email },
+    { otp: hashedOTP, otpExpiration: otpExpirationTime },
+    { upsert: true }
+  );
+
+  try {
+    await sendEmail(email, "Your OTP Code", `Your OTP is ${otp}`);
+    res.status(200).json({ message: "OTP sent successfully", otp });
+  } catch (error) {
+    return next(new ErrorHandler("Email sending error !", 500));
+  }
+});
 
 module.exports.signUpUser = catchAsyncErrors(async (req, res, next) => {
   const { fullName, email, password, gender, profileImage } = req.body;
