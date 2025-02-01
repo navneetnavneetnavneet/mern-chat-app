@@ -1,11 +1,13 @@
-const { catchAsyncErrors } = require("../middlewares/catchAsyncErrors");
+const {
+  catchAsyncErrors,
+} = require("../middlewares/catchAsyncErrors.middleware.");
 const ErrorHandler = require("../utils/ErrorHandler");
-const Message = require("../models/messageModel");
-const User = require("../models/userModel");
-const Chat = require("../models/chatModel");
+const messageModel = require("../models/message.model");
+const userModel = require("../models/user.model");
+const chatModel = require("../models/chat.model");
 const { v4: uuidv4 } = require("uuid");
 const path = require("path");
-const imagekit = require("../utils/ImageKit").initImageKit();
+const imagekit = require("../config/imagekit.config").initImageKit();
 
 module.exports.sendMessage = catchAsyncErrors(async (req, res, next) => {
   const { chatId, content, media } = req.body;
@@ -56,9 +58,9 @@ module.exports.sendMessage = catchAsyncErrors(async (req, res, next) => {
         );
       }
 
-      mimeType = req?.files?.media?.mimetype?.split("/")[0];
       const file = req.files?.media;
       const modifiedFileName = uuidv4() + path.extname(file?.name);
+      mimeType = file.mimetype?.split("/")[0];
 
       const fileuploadResponse = await imagekit.upload({
         file: file.data,
@@ -68,34 +70,26 @@ module.exports.sendMessage = catchAsyncErrors(async (req, res, next) => {
       fileId = fileuploadResponse.fileId;
       url = fileuploadResponse.url;
     } catch (error) {
-      // console.log("File Upload Error : ", error);
-      return next(new ErrorHandler("File upload failed !", 500));
+      console.log("File Upload Error : ", error);
+      return next(new ErrorHandler("File is not uploaded on imagekit !", 500));
     }
   }
 
-  let message = await Message.create({
-    content: content,
-    senderId: req.id,
-    chatId: chatId,
-    media: { fileId, url, fileType: mimeType },
-  });
-
-  if (!message) {
-    return next(new ErrorHandler("Message is not created !", 500));
-  }
-
   try {
-    message = await message.populate(
-      "senderId",
-      "fullName email profileImage gender"
-    );
-    message = await message.populate("chatId");
-    message = await User.populate(message, {
-      path: "chatId.users",
-      select: "fullName email profileImage gender",
+    let message = await messageModel.create({
+      content: content,
+      senderId: req._id,
+      chatId: chatId,
+      media: { fileId, url, fileType: mimeType },
     });
 
-    await Chat.findByIdAndUpdate(
+    message = await message.populate("senderId");
+    message = await message.populate("chatId");
+    message = await userModel.populate(message, {
+      path: "chatId.users",
+    });
+
+    await chatModel.findByIdAndUpdate(
       chatId,
       { latestMessage: message },
       { new: true }
@@ -103,8 +97,7 @@ module.exports.sendMessage = catchAsyncErrors(async (req, res, next) => {
 
     res.status(201).json(message);
   } catch (error) {
-    // console.log(error);
-    return next(new ErrorHandler("Message population failed!", 500));
+    return next(new ErrorHandler("Message is not created!", 500));
   }
 });
 
@@ -115,8 +108,9 @@ module.exports.fetchAllMessages = catchAsyncErrors(async (req, res, next) => {
     return next(new ErrorHandler("chatId params not sent by request !", 500));
   }
 
-  const messages = await Message.find({ chatId: chatId })
-    .populate("senderId", "fullName email profileImage gender")
+  const messages = await messageModel
+    .find({ chatId: chatId })
+    .populate("senderId")
     .populate("chatId");
 
   res.status(200).json(messages);

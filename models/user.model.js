@@ -8,6 +8,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, "Full name is required !"],
       trim: true,
+      minLength: [3, "Full name atleast be 3 characters !"],
     },
     email: {
       type: String,
@@ -36,10 +37,12 @@ const userSchema = new mongoose.Schema(
       default: {
         fileId: "",
         url: "https://www.shutterstock.com/image-vector/user-profile-icon-vector-avatar-600nw-2247726673.jpg",
+        fileType: "",
       },
     },
     dateOfBirth: {
       type: Date,
+      required: [true, "Date of birth is required !"],
     },
     isVerified: {
       type: Boolean,
@@ -47,12 +50,11 @@ const userSchema = new mongoose.Schema(
     },
     otp: {
       type: String,
-      default: null,
+
       minLength: [6, "OTP must be 6 characters !"],
     },
     otpExpiration: {
       type: String,
-      default: null,
     },
     status: [{ type: mongoose.Schema.Types.ObjectId, ref: "status" }],
   },
@@ -75,7 +77,7 @@ userSchema.methods.comparePassword = function (password) {
 };
 
 userSchema.methods.generatejwttoken = function () {
-  return jwt.sign({ id: this._id }, process.env.JWT_SECRET, {
+  return jwt.sign({ _id: this._id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRE,
   });
 };

@@ -5,17 +5,25 @@ const express = require("express");
 const { server, app } = require("./socket/socket");
 const logger = require("morgan");
 const ErrorHandler = require("./utils/ErrorHandler");
-const { generateErrors } = require("./middlewares/errors");
+const { generateErrors } = require("./middlewares/errors.middleware");
 const session = require("express-session");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const fileupload = require("express-fileupload");
 
+const userRouter = require("./routes/user.routes");
+const chatRouter = require("./routes/chat.routes");
+const messageRouter = require("./routes/message.routes");
+const statusRouter = require("./routes/status.routes");
+
 // db connection
-require("./config/db").connectDatabase();
+require("./config/db.config").connectDatabase();
+
+// cloudinary configure
+require("./config/cloudinary.config");
 
 // cors
-app.use(cors({ origin: "http://localhost:5173", credentials: true }));
+app.use(cors({ origin: process.env.REACT_BASE_URL, credentials: true }));
 
 // express-fileupload
 app.use(fileupload());
@@ -38,10 +46,10 @@ app.use(cookieParser());
 app.use(logger("tiny"));
 
 // routes
-app.use("/api/users", require("./routes/userRoutes"));
-app.use("/api/chats", require("./routes/chatRoutes"));
-app.use("/api/messages", require("./routes/messageRoutes"));
-app.use("/api/status", require("./routes/statusRoutes"));
+app.use("/api/users", userRouter);
+app.use("/api/chats", chatRouter);
+app.use("/api/messages", messageRouter);
+app.use("/api/status", statusRouter);
 
 // error handling
 app.all("*", (req, res, next) => {
