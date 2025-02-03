@@ -49,8 +49,14 @@ module.exports.accessChat = catchAsyncErrors(async (req, res, next) => {
 });
 
 module.exports.fetchChats = catchAsyncErrors(async (req, res, next) => {
+  const user = await userModel.findById(req._id);
+
+  if (!user) {
+    return nedxt(new ErrorHandler("User not found !", 404));
+  }
+
   await chatModel
-    .find({ users: { $elemMatch: { $eq: req._id } } })
+    .find({ users: { $elemMatch: { $eq: user._id } } })
     .populate("users")
     .populate("groupAdmin")
     .populate("latestMessage")
@@ -69,7 +75,7 @@ module.exports.fetchChats = catchAsyncErrors(async (req, res, next) => {
 
         // Adding the loggedInUser to the start of the chat.users array
         const loggedInUserIndex = chat.users.findIndex(
-          (u) => u._id.toString() === req._id.toString()
+          (u) => u._id.toString() === user._id.toString()
         );
 
         const [loggedInUser] = chat.users.splice(loggedInUserIndex, 1);
