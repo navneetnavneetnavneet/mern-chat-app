@@ -52,7 +52,7 @@ module.exports.fetchChats = catchAsyncErrors(async (req, res, next) => {
   const user = await userModel.findById(req._id);
 
   if (!user) {
-    return nedxt(new ErrorHandler("User not found !", 404));
+    return next(new ErrorHandler("User not found !", 404));
   }
 
   await chatModel
@@ -182,7 +182,7 @@ module.exports.exitUserFromGroup = catchAsyncErrors(async (req, res, next) => {
     .populate("groupAdmin");
 
   if (!chat) {
-    return next(new ErrorHandler("chatModel in not found !", 404));
+    return next(new ErrorHandler("Chat in not found !", 404));
   }
 
   chat.users = chat.users.filter(

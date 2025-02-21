@@ -11,6 +11,7 @@ const bcrypt = require("bcryptjs");
 const imagekit = require("../config/imagekit.config").initImageKit();
 const { v4: uuidv4 } = require("uuid");
 const path = require("path");
+const crypto = require("crypto");
 
 module.exports.sendOTP = catchAsyncErrors(async (req, res, next) => {
   const errors = validationResult(req);
@@ -123,6 +124,89 @@ module.exports.signOutUser = catchAsyncErrors(async (req, res, next) => {
 
   res.status(200).json({
     message: "User logout successfull",
+  });
+});
+
+module.exports.forgotPassword = catchAsyncErrors(async (req, res, next) => {
+  const errors = validationResult(req);
+
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  const { email } = req.body;
+
+  const user = await userModel.findOne({ email });
+
+  if (!user) {
+    return next(new ErrorHandler("User not found !", 404));
+  }
+
+  // grnerate token ans hash it
+  const resetToken = crypto.randomBytes(32).toString("hex");
+  const hashedToken = crypto
+    .createHash("sha256")
+    .update(resetToken)
+    .digest("hex");
+
+  user.resetPasswordToken = hashedToken;
+  user.resetPasswordExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
+
+  await user.save();
+
+  const resetLink = `${req.protocol}://${req.get(
+    "host"
+  )}/api/users/forgot-password-link/${resetToken}`;
+
+  try {
+    await sendEmail(
+      email,
+      "Password Recovery",
+      `To reset your password, please click on this link: ${resetLink}`
+    );
+
+    res.status(200).json({
+      message: "Reset password link sent to your email",
+      resetToken,
+    });
+  } catch (error) {
+    return next(new ErrorHandler("Email sending error !", 500));
+  }
+});
+
+module.exports.resetPassword = catchAsyncErrors(async (req, res, next) => {
+  const errors = validationResult(req);
+
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  const { password } = req.body;
+  const { resetToken } = req.params;
+
+  const hashedToken = crypto
+    .createHash("sha256")
+    .update(resetToken)
+    .digest("hex");
+
+  const user = await userModel.findOne({
+    resetPasswordToken: hashedToken,
+    resetPasswordExpires: { $gt: Date.now() },
+  });
+
+  if (!user) {
+    return next(new ErrorHandler("Invalid or expired reset token !", 400));
+  }
+
+  user.password = password;
+  user.resetPasswordToken = null;
+  user.resetPasswordExpires = null;
+
+  await user.save();
+
+  res.status(200).json({
+    message: "Password reset successful",
+    user,
   });
 });
 

@@ -53,6 +53,25 @@ router.get(
   userController.signOutUser
 );
 
+router.post(
+  "/forgot-password",
+  [body("email").isEmail().withMessage("Invalid email !")],
+  userController.forgotPassword
+);
+
+router.post(
+  "/reset-password/:resetToken",
+  [
+    body("password")
+      .isLength({ min: 6 })
+      .withMessage("Password must be atleast 6 characters"),
+    body("password")
+      .isLength({ max: 6 })
+      .withMessage("Password should not be exceed more than 15 characters"),
+  ],
+  userController.resetPassword
+);
+
 router.get(
   "/current",
   authMiddleware.isAuthenticated,
@@ -64,11 +83,7 @@ router.get("/alluser", authMiddleware.isAuthenticated, userController.allUser);
 // include loggedInUser
 router.get("/", authMiddleware.isAuthenticated, userController.fetchAllUser);
 
-router.post(
-  "/edit",
-  authMiddleware.isAuthenticated,
-  userController.editUser
-);
+router.post("/edit", authMiddleware.isAuthenticated, userController.editUser);
 
 router.get(
   "/delete",

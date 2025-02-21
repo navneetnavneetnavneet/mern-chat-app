@@ -56,6 +56,12 @@ const userSchema = new mongoose.Schema(
     otpExpiration: {
       type: String,
     },
+    resetPasswordToken: {
+      type: String,
+    },
+    resetPasswordExpires: {
+      type: Date,
+    },
     status: [{ type: mongoose.Schema.Types.ObjectId, ref: "status" }],
   },
   {
