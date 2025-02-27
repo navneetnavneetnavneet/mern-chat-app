@@ -67,11 +67,14 @@ io.on("connection", (socket) => {
       if (user._id.toString() === senderId._id.toString()) return; // Exclude sender
       socket.emit("msg", newMessage);
 
-      socket.to(user?._id).emit("message-received", newMessage);
+      const recipientSocket = userSocketMap[user._id];
+      if (recipientSocket) {
+        io.to(recipientSocket).emit("message-received", newMessage);
+      }
     });
   });
 
-  socket.on("disconnecting", () => {
+  socket.on("disconnect", () => {
     console.log(`User disconnected: ${socket.id}`);
     if (userId) {
       delete userSocketMap[userId];

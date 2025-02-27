@@ -10,6 +10,9 @@ const session = require("express-session");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const fileupload = require("express-fileupload");
+const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
+const port = process.env.PORT || 3000;
 
 const userRouter = require("./routes/user.routes");
 const chatRouter = require("./routes/chat.routes");
@@ -22,8 +25,16 @@ require("./config/db.config").connectDatabase();
 // cloudinary configure
 require("./config/cloudinary.config");
 
-// cors
+// security middlewares
+app.use(helmet());
 app.use(cors({ origin: process.env.REACT_BASE_URL, credentials: true }));
+
+// rate limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+});
+app.use(limiter);
 
 // express-fileupload
 app.use(fileupload());
@@ -35,9 +46,14 @@ app.use(express.json());
 // session and cookieParser
 app.use(
   session({
-    resave: true,
-    saveUninitialized: true,
+    resave: false,
+    saveUninitialized: false,
     secret: process.env.EXPRESS_SESSION_SECRET,
+    cookie: {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 24 * 60 * 60 * 1000,
+    },
   })
 );
 app.use(cookieParser());
@@ -58,6 +74,6 @@ app.all("*", (req, res, next) => {
 app.use(generateErrors);
 
 // create server
-server.listen(process.env.PORT, () => {
-  console.log(`Server running on port ${process.env.PORT}`);
+server.listen(port, () => {
+  console.log(`Server running on port ${port}`);
 });

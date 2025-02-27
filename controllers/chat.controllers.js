@@ -107,6 +107,11 @@ module.exports.createGroupChat = catchAsyncErrors(async (req, res, next) => {
       users: users,
       isGroupChat: true,
       groupAdmin: req._id,
+      groupImage: {
+        fileId: "",
+        url: "https://png.pngtree.com/png-clipart/20230915/original/pngtree-linear-group-icon-for-customer-service-icon-white-manager-vector-png-image_12180690.png",
+        fileType: "image",
+      },
     });
 
     const fullGroupChat = await chatModel

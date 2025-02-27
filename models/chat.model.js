@@ -10,6 +10,14 @@ const chatSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    groupImage: {
+      type: Object,
+      default: {
+        fileId: "",
+        url: "",
+        fileType: "",
+      },
+    },
     users: [{ type: mongoose.Schema.Types.ObjectId, ref: "user" }],
     groupAdmin: { type: mongoose.Schema.Types.ObjectId, ref: "user" },
     latestMessage: { type: mongoose.Schema.Types.ObjectId, ref: "message" },
